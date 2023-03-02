@@ -1,42 +1,126 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+import tkinter as tk
+import requests
+from bs4 import BeautifulSoup
+from openpyxl import Workbook, load_workbook
 
-on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+def search():
+    # This function will be executed when the user clicks the "Search" button
+    company_name = company_name_entry.get()
+    company_address = company_address_entry.get()
+    result_label.config(text=f"Searching for {company_name} at {company_address}")
+    search_company_info(company_name, company_address)
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# Create the main window
+root = tk.Tk()
+root.title("Company Search")
 
-# Allow one concurrent deployment
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+# Set the window size and position
+window_width = 400
+window_height = 200
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+x = int((screen_width/2) - (window_width/2))
+y = int((screen_height/2) - (window_height/2))
+root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
-jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v1
+# Set the background color and font style
+root.configure(bg="#f2f2f2")
+font_style = ("Arial", 14)
+
+# Create the label for company name
+company_name_label = tk.Label(root, text="Company Name:", font=font_style, bg="#f2f2f2")
+company_name_label.grid(row=0, column=0, padx=10, pady=10)
+
+# Create the entry box for company name
+company_name_entry = tk.Entry(root, font=font_style, bg="#fff", bd=0, highlightcolor="#6c63ff", highlightthickness=2)
+company_name_entry.grid(row=0, column=1, padx=10, pady=10)
+
+# Create the label for company address
+company_address_label = tk.Label(root, text="Company Address:", font=font_style, bg="#f2f2f2")
+company_address_label.grid(row=1, column=0, padx=10, pady=10)
+
+# Create the entry box for company address
+company_address_entry = tk.Entry(root, font=font_style, bg="#fff", bd=0, highlightcolor="#6c63ff", highlightthickness=2)
+company_address_entry.grid(row=1, column=1, padx=10, pady=10)
+
+# Create the "Search" button
+search_button = tk.Button(root, text="Search", font=font_style, bg="#6c63ff", fg="#fff", bd=0, activebackground="#463af8", activeforeground="#fff", command=search)
+search_button.grid(row=2, column=1, padx=10, pady=10)
+
+# Create the label for the search result
+result_label = tk.Label(root, font=font_style, bg="#f2f2f2")
+result_label.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+
+# Start the GUI event loop
+root.mainloop()
+
+
+def search_company_info(company_name, address):
+    # Construct the URLs for each website
+    google_maps_url = f'https://www.google.ng/maps/place/{company_name}+{address}'
+    linkedin_url = f'https://www.linkedin.com/company/{company_name}/about/'
+    google_search_url = f'https://www.google.com/search?q={company_name}+{address}'
+    frozen_goods_url = f'https://www.frozen-goods.com/{company_name}'
+    wikipedia_url = f'https://en.wikipedia.org/wiki/{company_name}'
+    dnb_url = f'https://www.dnb.com/business-directory/company-profiles.{company_name}.html'
+    forbes_url = f'https://www.forbes.com/companies/{company_name}/'
+
+    # Send HTTP requests to each website
+    google_maps_response = requests.get(google_maps_url)
+    linkedin_response = requests.get(linkedin_url)
+    google_search_response = requests.get(google_search_url)
+    frozen_goods_response = requests.get(frozen_goods_url)
+    wikipedia_response = requests.get(wikipedia_url)
+    dnb_response = requests.get(dnb_url)
+    forbes_response = requests.get(forbes_url)
+
+    # Parse the HTML content of each website response
+    google_maps_soup = BeautifulSoup(google_maps_response.content, 'html.parser')
+    linkedin_soup = BeautifulSoup(linkedin_response.content, 'html.parser')
+    google_search_soup = BeautifulSoup(google_search_response.content, 'html.parser')
+    frozen_goods_soup = BeautifulSoup(frozen_goods_response.content, 'html.parser')
+    wikipedia_soup = BeautifulSoup(wikipedia_response.content, 'html.parser')
+    dnb_soup = BeautifulSoup(dnb_response.content, 'html.parser')
+    forbes_soup = BeautifulSoup(forbes_response.content, 'html.parser')
+
+    # Extract the information you need from the HTML using BeautifulSoup
+    date_started = dnb_soup.find('span', {'class': 'date-started'}).text
+    company_website = linkedin_soup.find('a', {'class': 'company-website'})['href']
+    production_capacity = frozen_goods_soup.find('div', {'class': 'production-capacity'}).text
+    owner = dnb_soup.find('span', {'class': 'owner'}).text
+    operator = dnb_soup.find('span', {'class': 'operator'}).text
+    status = frozen_goods_soup.find('div', {'class': 'status'}).text
+    products = wikipedia_soup.find('div', {'class': 'products'}).text
+    geocoordinate = google_maps_soup.find('span', {'class': 'geocoordinate'}).text
+
+    # Print the extracted information
+    print("Date started:", date_started)
+    print("Company website:", company_website)
+    print("Production capacity:", production_capacity)
+    print("Owner:", owner)
+    print("Operator:", operator)
+    print("Status:", status)
+    print("Products:", products)
+    print("Geocoordinate:", geocoordinate)
+    
+wb = load_workbook("company_info.xlsx")
+ws = wb.active
+
+# Write the company information to the Excel file
+row = ws.max_row + 1
+ws.cell(row=row, column=1, value=company_name)
+ws.cell(row=row, column=2, value=date_started)
+ws.cell(row=row, column=3, value=company_website)
+ws.cell(row=row, column=4, value=production_capacity)
+ws.cell(row=row, column=5, value=owner)
+ws.cell(row=row, column=6, value=operator)
+ws.cell(row=row, column=7, value=status)
+ws.cell(row=row, column=8, value=products)
+ws.cell(row=row, column=9, value=geocoordinate)
+
+# Save the changes to the Excel file
+wb.save("company_info.xlsx")
+
+# Show a message box to indicate that the data has been saved
+messagebox.showinfo("Success", "Company information has been saved to the Excel file.")
