@@ -1,59 +1,58 @@
+# Import necessary modules
 import tkinter as tk
+import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from openpyxl import Workbook, load_workbook
+import openpyxl
 
+# Create a function to search for company information
+def search_company():
+    # Get the company name and address entered by the user
+    company_name = name_entry.get()
+    company_address = address_entry.get()
+    
+    # Use the company name and address to search for information
+    # Code to search for company information goes here...
+    
+    # Create a dataframe to store the search results
+    search_results = pd.DataFrame(columns=['Company Name', 'Date Started', 'Website', 'Production Capacity', 'Owner', 'Operator', 'Status', 'Products', 'Geocoordinate'])
+    
+    # Populate the search results in the dataframe
+    # Code to populate the search results goes here...
+    
+    # Save the search results to an excel file
+    search_results.to_excel('company_information.xlsx', index=False)
+    
+    # Clear the text boxes after the search is complete
+    name_entry.delete(0, tk.END)
+    address_entry.delete(0, tk.END)
 
-def search():,
-    # This function will be executed when the user clicks the "Search" button
-    company_name = company_name_entry.get()
-    company_address = company_address_entry.get()
-    result_label.config(text=f"Searching for {company_name} at {company_address}")
-    search_company_info(company_name, company_address)
+# Create a graphical user interface (GUI)
+window = tk.Tk()
+window.title('Company Information Search')
 
-# Create the main window
-root = tk.Tk()
-root.title("Company Search")
+# Create a label for the company name
+name_label = tk.Label(window, text='Company Name:')
+name_label.grid(row=0, column=0, padx=10, pady=10)
 
-# Set the window size and position
-window_width = 400
-window_height = 200
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-x = int((screen_width/2) - (window_width/2))
-y = int((screen_height/2) - (window_height/2))
-root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+# Create a text box for the company name
+name_entry = tk.Entry(window)
+name_entry.grid(row=0, column=1, padx=10, pady=10)
 
-# Set the background color and font style
-root.configure(bg="#f2f2f2")
-font_style = ("Arial", 14)
+# Create a label for the company address
+address_label = tk.Label(window, text='Company Address:')
+address_label.grid(row=1, column=0, padx=10, pady=10)
 
-# Create the label for company name
-company_name_label = tk.Label(root, text="Company Name:", font=font_style, bg="#f2f2f2")
-company_name_label.grid(row=0, column=0, padx=10, pady=10)
+# Create a text box for the company address
+address_entry = tk.Entry(window)
+address_entry.grid(row=1, column=1, padx=10, pady=10)
 
-# Create the entry box for company name
-company_name_entry = tk.Entry(root, font=font_style, bg="#fff", bd=0, highlightcolor="#6c63ff", highlightthickness=2)
-company_name_entry.grid(row=0, column=1, padx=10, pady=10)
+# Create a button to initiate the search
+search_button = tk.Button(window, text='Search', command=search_company)
+search_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
 
-# Create the label for company address
-company_address_label = tk.Label(root, text="Company Address:", font=font_style, bg="#f2f2f2")
-company_address_label.grid(row=1, column=0, padx=10, pady=10)
-
-# Create the entry box for company address
-company_address_entry = tk.Entry(root, font=font_style, bg="#fff", bd=0, highlightcolor="#6c63ff", highlightthickness=2)
-company_address_entry.grid(row=1, column=1, padx=10, pady=10)
-
-# Create the "Search" button
-search_button = tk.Button(root, text="Search", font=font_style, bg="#6c63ff", fg="#fff", bd=0, activebackground="#463af8", activeforeground="#fff", command=search)
-search_button.grid(row=2, column=1, padx=10, pady=10)
-
-# Create the label for the search result
-result_label = tk.Label(root, font=font_style, bg="#f2f2f2")
-result_label.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
-
-# Start the GUI event loop
-root.mainloop()
+# Start the GUI
+window.mainloop()
 
 
 def search_company_info(company_name, address):
@@ -85,13 +84,13 @@ def search_company_info(company_name, address):
     forbes_soup = BeautifulSoup(forbes_response.content, 'html.parser')
 
     # Extract the information you need from the HTML using BeautifulSoup
-    date_started = dnb_soup.find('span', {'class': 'date-started'}).text
-    company_website = linkedin_soup.find('a', {'class': 'company-website'})['href']
+    date_started = wikipedia_soup.find('span', {'class': 'date-started'}).text
+    company_website = wikipedia_soup.find('a', {'class': 'company-website'})['href']
     production_capacity = frozen_goods_soup.find('div', {'class': 'production-capacity'}).text
-    owner = dnb_soup.find('span', {'class': 'owner'}).text
+    owner = linkedin_soup.find('span', {'class': 'owner'}).text
     operator = dnb_soup.find('span', {'class': 'operator'}).text
-    status = frozen_goods_soup.find('div', {'class': 'status'}).text
-    products = wikipedia_soup.find('div', {'class': 'products'}).text
+    status = google_search_soup.find('div', {'class': 'status'}).text
+    products = google_search_soup.find('div', {'class': 'products'}).text
     geocoordinate = google_maps_soup.find('span', {'class': 'geocoordinate'}).text
 
     # Print the extracted information
@@ -103,24 +102,43 @@ def search_company_info(company_name, address):
     print("Status:", status)
     print("Products:", products)
     print("Geocoordinate:", geocoordinate)
+
+
+# Open the Excel file
+workbook = openpyxl.load_workbook('company_information.xlsx')
+sheet = workbook.active
+
+# Define the search function
+def search_company_info(company_name, address):
+    # Search on Google Maps
+    url = f"https://www.google.ng/maps/place/{company_name}+{address}"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
     
-wb = load_workbook("company_info.xlsx")
-ws = wb.active
+    # Extract the website
+    website_element = soup.find('a', class_='section-info-action-link')
+    website = website_element.get('href') if website_element else None
+    
+    # Extract the date started
+    date_started_element = soup.find('span', class_='widget-pane-fact-value')
+    date_started = date_started_element.text if date_started_element else None
+    
+    # Store the extracted data in a dictionary
+    company_info = {
+        'website': website,
+        'date_started': date_started
+    }
+    
+    # Add the data to the Excel file
+    row = sheet.max_row + 1
+    sheet.cell(row=row, column=1).value = company_name
+    sheet.cell(row=row, column=2).value = address
+    sheet.cell(row=row, column=3).value = company_info['website']
+    sheet.cell(row=row, column=4).value = company_info['date_started']
+    
+    return company_info
 
-# Write the company information to the Excel file
-row = ws.max_row + 1
-ws.cell(row=row, column=1, value=company_name)
-ws.cell(row=row, column=2, value=date_started)
-ws.cell(row=row, column=3, value=company_website)
-ws.cell(row=row, column=4, value=production_capacity)
-ws.cell(row=row, column=5, value=owner)
-ws.cell(row=row, column=6, value=operator)
-ws.cell(row=row, column=7, value=status)
-ws.cell(row=row, column=8, value=products)
-ws.cell(row=row, column=9, value=geocoordinate)
-
-# Save the changes to the Excel file
-wb.save("company_info.xlsx")
-
-# Show a message box to indicate that the data has been saved
-messagebox.showinfo("Success", "Company information has been saved to the Excel file.")
+# Call the search function and save the Excel file
+search_company_info('Company A', '123 Main St')
+search_company_info('Company B', '456 Elm St')
+workbook.save('company_information.xlsx')
