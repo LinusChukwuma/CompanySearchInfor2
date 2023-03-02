@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from openpyxl import Workbook, load_workbook
 
 
-def search():
+def search():,
     # This function will be executed when the user clicks the "Search" button
     company_name = company_name_entry.get()
     company_address = company_address_entry.get()
